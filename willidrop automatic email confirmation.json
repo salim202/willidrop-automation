@@ -1,0 +1,1044 @@
+{
+  "name": "willidrop automatic email confirmation",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        -128
+      ],
+      "id": "16342bb8-fd6b-4ad0-a70e-2cc56962f4e4",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appdamXeYiOyBwEi2",
+          "mode": "list",
+          "cachedResultName": "Willidrop Transport Orders",
+          "cachedResultUrl": "https://airtable.com/appdamXeYiOyBwEi2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblqYIudXcSJQu6gW",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appdamXeYiOyBwEi2/tblqYIudXcSJQu6gW"
+        },
+        "filterByFormula": "AND({Status} = 'Confirmed', {confirmation email} = 'not sent')",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -160,
+        -128
+      ],
+      "id": "b34afcc8-f5d1-4220-8b6e-2f94a6eda8b6",
+      "name": "Search records",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "yyPowSlaZ2s9uOim",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write a professional HTML transport confirmation email using exactly this data:\n\nCarrier: {{ $json.fields['carrier name'] }}\nRoute: {{ $json.fields.route }}\nPrice: {{ $json.fields.price }}\nStatus: Confirmed\n\nRequirements:\n- Output ONLY the HTML between <body> tags, nothing else\n- Use a clean table to display order details (Route, Price, Status)\n- Use inline CSS for styling (font-family: Arial, padding, colors)\n- Header: bold \"Transport Order Confirmation\" in dark blue (#1a2e4a)\n- Greeting: Dear [Carrier Name],\n- One short paragraph confirming the order is approved and they are cleared to proceed\n- A styled HTML table with the order details\n- Professional closing from \"Willidrop Operations Team\"\n- No markdown, no code blocks, no explanations",
+        "options": {
+          "systemMessage": "You are a logistics assistant for Willidrop, a professional automotive transport company. Your only job is to write professional confirmation emails to transport carriers. Always write in English. Be concise and formal. Output only raw HTML starting with <body>, no explanations, no markdown, no code blocks."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        320,
+        16
+      ],
+      "id": "0526bc20-a572-4b51-ae2b-d61de4f08563",
+      "name": "AI Agent",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Search records').item.json['contact email'] }}",
+        "subject": "Order confirmation ",
+        "message": "={{ $json.output }}\n<img src=\"https://lckgayclvtbdkopnkmns.supabase.co/storage/v1/object/public/posts-uploaded-images/public/svgviewer-png-output.png\" alt=\"Logo Willidrop\" width=\"150\">\n<p>Willidrop Team</p></body></html>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        -64
+      ],
+      "id": "730a38e8-0c4f-4768-86bd-16c748ebdad5",
+      "name": "Send a message",
+      "webhookId": "ffc6ed84-7b7d-4029-b1b7-83683a1ac8a0",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "1YxiDrQOuDALjYYf",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash-lite-001",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        240
+      ],
+      "id": "dea29a3f-b2e0-44a7-a834-0b2a7bb8198a",
+      "name": "Google Gemini Chat Model",
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "CBRS6mdFpkwB7eFv",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-3.5-turbo",
+          "mode": "list",
+          "cachedResultName": "gpt-3.5-turbo"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        112,
+        240
+      ],
+      "id": "233d17c6-9b22-4339-b8a8-58b0c87f7e05",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "CC0nQj4RwO6kmZGI",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        400,
+        240
+      ],
+      "id": "8627acfc-4205-4ebc-8c4e-fcdc8b3cfd86",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "GwHDkn9fPvSOlHTv",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appdamXeYiOyBwEi2",
+          "mode": "list",
+          "cachedResultName": "Willidrop Transport Orders",
+          "cachedResultUrl": "https://airtable.com/appdamXeYiOyBwEi2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblqYIudXcSJQu6gW",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appdamXeYiOyBwEi2/tblqYIudXcSJQu6gW"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "confirmation email": "sending"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "carrier name",
+              "displayName": "carrier name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "route",
+              "displayName": "route",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "price",
+              "displayName": "price",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Todo",
+                  "value": "Todo"
+                },
+                {
+                  "name": "In progress",
+                  "value": "In progress"
+                },
+                {
+                  "name": "Done",
+                  "value": "Done"
+                },
+                {
+                  "name": "Confirmed",
+                  "value": "Confirmed"
+                },
+                {
+                  "name": "Pending",
+                  "value": "Pending"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "contact email",
+              "displayName": "contact email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "confirmation email",
+              "displayName": "confirmation email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "not sent",
+                  "value": "not sent"
+                },
+                {
+                  "name": "sent",
+                  "value": "sent"
+                },
+                {
+                  "name": "sending",
+                  "value": "sending"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        64,
+        -128
+      ],
+      "id": "531b0ae7-527a-4eb1-bec6-c5bf8f86c892",
+      "name": "Update record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "yyPowSlaZ2s9uOim",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appdamXeYiOyBwEi2",
+          "mode": "list",
+          "cachedResultName": "Willidrop Transport Orders",
+          "cachedResultUrl": "https://airtable.com/appdamXeYiOyBwEi2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblqYIudXcSJQu6gW",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appdamXeYiOyBwEi2/tblqYIudXcSJQu6gW"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Update record').item.json.id }}",
+            "confirmation email": "sent"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "carrier name",
+              "displayName": "carrier name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "route",
+              "displayName": "route",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "price",
+              "displayName": "price",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Todo",
+                  "value": "Todo"
+                },
+                {
+                  "name": "In progress",
+                  "value": "In progress"
+                },
+                {
+                  "name": "Done",
+                  "value": "Done"
+                },
+                {
+                  "name": "Confirmed",
+                  "value": "Confirmed"
+                },
+                {
+                  "name": "Pending",
+                  "value": "Pending"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "contact email",
+              "displayName": "contact email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "confirmation email",
+              "displayName": "confirmation email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "not sent",
+                  "value": "not sent"
+                },
+                {
+                  "name": "sent",
+                  "value": "sent"
+                },
+                {
+                  "name": "sending",
+                  "value": "sending"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        896,
+        -64
+      ],
+      "id": "261da9d9-7cfa-44be-b2a1-68718f609d1a",
+      "name": "Update record1",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "yyPowSlaZ2s9uOim",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const carrier = $json.fields['carrier name'];\nconst route = $json.fields.route;\nconst price = $json.fields.price;\nconst recordId = $json.id;\n\nreturn {\n  json: {\n    id: recordId,\n    emailBody: `\n    <div style=\"font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:20px;border:1px solid #ddd;border-radius:8px;\">\n      <h2 style=\"color:#1a2e4a;border-bottom:2px solid #1a2e4a;padding-bottom:8px;\">Transport Order Confirmation</h2>\n      <p>Dear <strong>${carrier}</strong>,</p>\n      <p>We are pleased to confirm that your transport order has been approved. You are cleared to proceed.</p>\n      <table style=\"width:100%;border-collapse:collapse;margin:20px 0;\">\n        <tr style=\"background:#1a2e4a;color:white;\">\n          <th style=\"padding:10px;text-align:left;\">Route</th>\n          <th style=\"padding:10px;text-align:left;\">Price</th>\n          <th style=\"padding:10px;text-align:left;\">Status</th>\n        </tr>\n        <tr style=\"background:#f9f9f9;\">\n          <td style=\"padding:10px;\">${route}</td>\n          <td style=\"padding:10px;\">${price}</td>\n          <td style=\"padding:10px;color:green;font-weight:bold;\">✓ Confirmed</td>\n        </tr>\n      </table>\n      <p>Please ensure all necessary documents are ready upon pickup.</p>\n      <p>Best regards,<br><strong>Willidrop Operations Team</strong></p>\n    </div>`,\n    emailSubject: `Transport Order Confirmation – ${route}`\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        -272
+      ],
+      "id": "ee108398-4fa4-4294-83eb-e5de38799235",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Search records').item.json['contact email'] }}",
+        "subject": "={{ $json.emailSubject }}",
+        "message": "={{ $json.emailBody }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        640,
+        -272
+      ],
+      "id": "0ea2de6b-4493-4f69-b1e6-be5c0da77ef0",
+      "name": "Send a message1",
+      "webhookId": "ffc6ed84-7b7d-4029-b1b7-83683a1ac8a0",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "1YxiDrQOuDALjYYf",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appdamXeYiOyBwEi2",
+          "mode": "list",
+          "cachedResultName": "Willidrop Transport Orders",
+          "cachedResultUrl": "https://airtable.com/appdamXeYiOyBwEi2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblqYIudXcSJQu6gW",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appdamXeYiOyBwEi2/tblqYIudXcSJQu6gW"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Update record').item.json.id }}",
+            "confirmation email": "sent"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "carrier name",
+              "displayName": "carrier name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "route",
+              "displayName": "route",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "price",
+              "displayName": "price",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Todo",
+                  "value": "Todo"
+                },
+                {
+                  "name": "In progress",
+                  "value": "In progress"
+                },
+                {
+                  "name": "Done",
+                  "value": "Done"
+                },
+                {
+                  "name": "Confirmed",
+                  "value": "Confirmed"
+                },
+                {
+                  "name": "Pending",
+                  "value": "Pending"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "contact email",
+              "displayName": "contact email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "confirmation email",
+              "displayName": "confirmation email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "not sent",
+                  "value": "not sent"
+                },
+                {
+                  "name": "sent",
+                  "value": "sent"
+                },
+                {
+                  "name": "sending",
+                  "value": "sending"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        864,
+        -272
+      ],
+      "id": "8202e8ad-7c77-4bc5-941c-315598b24426",
+      "name": "Update record3",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "yyPowSlaZ2s9uOim",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Javascript Coded \n",
+        "height": 256,
+        "width": 848
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        240,
+        -368
+      ],
+      "id": "ee990a9d-f53d-47a3-97e9-e64a11a0e60f",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## AI automated\n",
+        "height": 464,
+        "width": 848,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        240,
+        -80
+      ],
+      "id": "b944a137-2066-4434-a939-4fe2ec156d49",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appdamXeYiOyBwEi2",
+          "mode": "list",
+          "cachedResultName": "Willidrop Transport Orders",
+          "cachedResultUrl": "https://airtable.com/appdamXeYiOyBwEi2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblqYIudXcSJQu6gW",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appdamXeYiOyBwEi2/tblqYIudXcSJQu6gW"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "confirmation email": "not sent"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "carrier name",
+              "displayName": "carrier name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "route",
+              "displayName": "route",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "price",
+              "displayName": "price",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Todo",
+                  "value": "Todo"
+                },
+                {
+                  "name": "In progress",
+                  "value": "In progress"
+                },
+                {
+                  "name": "Done",
+                  "value": "Done"
+                },
+                {
+                  "name": "Confirmed",
+                  "value": "Confirmed"
+                },
+                {
+                  "name": "Pending",
+                  "value": "Pending"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "contact email",
+              "displayName": "contact email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "confirmation email",
+              "displayName": "confirmation email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "not sent",
+                  "value": "not sent"
+                },
+                {
+                  "name": "sent",
+                  "value": "sent"
+                },
+                {
+                  "name": "sending",
+                  "value": "sending"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        896,
+        96
+      ],
+      "id": "90a6973b-7f5f-4b0a-b9c7-5f7bae5ee661",
+      "name": "Update record2",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "yyPowSlaZ2s9uOim",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appdamXeYiOyBwEi2",
+          "mode": "list",
+          "cachedResultName": "Willidrop Transport Orders",
+          "cachedResultUrl": "https://airtable.com/appdamXeYiOyBwEi2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblqYIudXcSJQu6gW",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appdamXeYiOyBwEi2/tblqYIudXcSJQu6gW"
+        },
+        "filterByFormula": "AND({Status} = 'Confirmed', {confirmation email} = 'sending')",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        672,
+        96
+      ],
+      "id": "54bb7e1e-27ea-47ab-900e-f7946ffa4469",
+      "name": "Search records1",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "yyPowSlaZ2s9uOim",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "Update record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Search records1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update record": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Update record1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message1": {
+      "main": [
+        [
+          {
+            "node": "Update record3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records1": {
+      "main": [
+        [
+          {
+            "node": "Update record2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true,
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "8RQBBxxbVJxJzHb2",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "deaee2d5-042d-4f15-aaad-94b8438af2f4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "50297e9bffbba66926717ab576d88a31d4b70328077f05855482a1bdec9a7f00"
+  },
+  "id": "MJ6K5GPSMx03Gq5n",
+  "tags": []
+}
